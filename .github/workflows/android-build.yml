@@ -1,5 +1,8 @@
 name: Android Build
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches:
@@ -9,10 +12,6 @@ on:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: flutter_app
 
     steps:
       - name: Checkout
@@ -46,4 +45,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-debug-apk
-          path: flutter_app/build/app/outputs/flutter-apk/app-debug.apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
