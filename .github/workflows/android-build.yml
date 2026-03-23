@@ -23,6 +23,9 @@ jobs:
   build-apk:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      ANDROID_SDK_ROOT: ${{ github.workspace }}/.android-sdk
+      ANDROID_HOME: ${{ github.workspace }}/.android-sdk
 
     steps:
       - name: Checkout
@@ -39,6 +42,13 @@ jobs:
         with:
           channel: stable
           cache: true
+
+      - name: Prepare Android SDK directories
+        shell: bash
+        run: |
+          mkdir -p "${ANDROID_SDK_ROOT}"
+          mkdir -p "${ANDROID_SDK_ROOT}/ndk"
+          mkdir -p "${ANDROID_SDK_ROOT}/cmake"
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -66,7 +76,7 @@ jobs:
         if: steps.android-toolchain-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          yes | sdkmanager --licenses >/dev/null
+          yes | sdkmanager --licenses >/dev/null || true
           sdkmanager --install "ndk;${NDK_VERSION}" "cmake;${CMAKE_VERSION}"
 
       - name: Verify Android toolchain
