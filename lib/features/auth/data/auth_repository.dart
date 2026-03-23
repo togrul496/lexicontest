@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -81,15 +83,20 @@ class SessionController extends StateNotifier<AppSession> {
   final SessionStorage _storage;
 
   Future<void> hydrate() async {
-    final stored = await _storage.load();
-    if (!stored.isAuthenticated || stored.token == null) {
-      state = stored;
-      return;
-    }
-
-    state = stored;
     try {
-      final user = await _authRepository.getMe();
+      final stored = await _storage.load();
+      if (!stored.isAuthenticated || stored.token == null || stored.token!.isEmpty) {
+        state = stored.copyWith(
+          isReady: true,
+          isAuthenticated: false,
+          clearToken: true,
+          clearUser: true,
+        );
+        return;
+      }
+
+      state = stored;
+      final user = await _authRepository.getMe().timeout(const Duration(seconds: 15));
       final next = stored.copyWith(
         isReady: true,
         isAuthenticated: true,
@@ -157,4 +164,3 @@ class SessionController extends StateNotifier<AppSession> {
     await _storage.savePreferences(theme: theme, language: language);
   }
 }
-
