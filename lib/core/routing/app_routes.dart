@@ -1,6 +1,11 @@
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
+import 'package:lexicon_flutter/core/models/app_models.dart';
+import 'package:lexicon_flutter/core/widgets/async_value_view.dart';
+import 'package:lexicon_flutter/core/widgets/lexicon_scaffold.dart';
 import 'package:lexicon_flutter/features/admin/presentation/admin_hub_screen.dart';
 import 'package:lexicon_flutter/features/auth/data/auth_repository.dart';
 import 'package:lexicon_flutter/features/auth/presentation/login_screen.dart';
@@ -12,14 +17,13 @@ import 'package:lexicon_flutter/features/dictionary/presentation/dictionary_bloc
 import 'package:lexicon_flutter/features/dictionary/presentation/dictionary_screen.dart';
 import 'package:lexicon_flutter/features/lessons/presentation/lesson_detail_screen.dart';
 import 'package:lexicon_flutter/features/lessons/presentation/lessons_screen.dart';
+import 'package:lexicon_flutter/features/notifications/data/notifications_repository.dart';
 import 'package:lexicon_flutter/features/notifications/presentation/notification_detail_screen.dart';
-import 'package:lexicon_flutter/features/notifications/presentation/notifications_screen.dart';
 import 'package:lexicon_flutter/features/profile/presentation/profile_screen.dart';
 import 'package:lexicon_flutter/features/profile/presentation/settings_screen.dart';
 import 'package:lexicon_flutter/features/quiz/presentation/quiz_hub_screen.dart';
 import 'package:lexicon_flutter/features/tests/presentation/feature_placeholder_screen.dart';
 import 'package:lexicon_flutter/features/tests/presentation/tests_hub_screen.dart';
-import 'package:lexicon_flutter/core/models/app_models.dart';
 
 class AppRouteDef {
   const AppRouteDef(this.name, this.path);
@@ -126,7 +130,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.onlineTests.path, name: AppRoutes.onlineTests.name, builder: (_, __) => const QuizHubScreen(title: 'Online Tests')),
       GoRoute(path: AppRoutes.onlineTestDetail.path, name: AppRoutes.onlineTestDetail.name, builder: (_, state) => FeaturePlaceholderScreen(title: 'Online Test Detail', subtitle: 'Registration, countdown, and leaderboard migration follows the shared quiz stack.', routeLabel: state.matchedLocation)),
       GoRoute(path: AppRoutes.progress.path, name: AppRoutes.progress.name, builder: (_, state) => const FeaturePlaceholderScreen(title: 'Progress', subtitle: 'Charts and progress analytics are routed and ready for the next pass.', routeLabel: '/progress')),
-      GoRoute(path: AppRoutes.notifications.path, name: AppRoutes.notifications.name, builder: (_, __) => const NotificationsScreen()),
+      GoRoute(path: AppRoutes.notifications.path, name: AppRoutes.notifications.name, builder: (_, __) => const _NotificationsRouteScreen()),
       GoRoute(path: AppRoutes.notificationDetail.path, name: AppRoutes.notificationDetail.name, builder: (_, state) => NotificationDetailScreen(notificationId: int.parse(state.pathParameters['notifId']!))),
       GoRoute(path: AppRoutes.settings.path, name: AppRoutes.settings.name, builder: (_, __) => const SettingsScreen()),
       GoRoute(path: AppRoutes.profile.path, name: AppRoutes.profile.name, builder: (_, __) => const ProfileScreen()),
@@ -139,6 +143,52 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+class _NotificationsRouteScreen extends ConsumerWidget {
+  const _NotificationsRouteScreen();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifications = ref.watch(notificationsProvider);
+    return LexiconScaffold(
+      title: 'Bildirisler',
+      fallbackRoute: AppRoutes.home.path,
+      actions: [
+        IconButton(
+          onPressed: () async {
+            await ref.read(notificationsRepositoryProvider).markAllRead();
+            ref.invalidate(notificationsProvider);
+          },
+          icon: const Icon(Icons.done_all_rounded),
+        ),
+      ],
+      child: AsyncValueView(
+        value: notifications,
+        data: (items) => ListView.separated(
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (_, index) {
+            final item = items[index];
+            return Card(
+              child: ListTile(
+                onTap: () => context.push('/notifications/${item.notificationId}'),
+                leading: CircleAvatar(
+                  child: Icon(item.isRead ? Icons.mark_email_read_rounded : Icons.mark_email_unread_rounded),
+                ),
+                title: Text(item.title),
+                subtitle: Text(
+                  '${item.adminFullName.isNotEmpty ? '${item.adminFullName} • ' : ''}${DateFormat.yMMMd().add_Hm().format(DateTime.tryParse(item.createdAt)?.toLocal() ?? DateTime.now())}\n${item.content}',
+                ),
+                isThreeLine: true,
+                trailing: item.likeCount > 0 ? Chip(label: Text('${item.likeCount}')) : const Icon(Icons.chevron_right_rounded),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
 
 List<RouteBase> _adminPlaceholderRoutes() {
   GoRoute simple(AppRouteDef route, String title, String subtitle) {
@@ -179,3 +229,4 @@ List<RouteBase> _adminPlaceholderRoutes() {
     simple(AppRoutes.adminQuizSessionResults, 'Quiz Session Results', 'Admin result analytics route is scaffolded.'),
   ];
 }
+

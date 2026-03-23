@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,7 +13,8 @@ class DictionaryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final blocks = ref.watch(dictionaryBlocksProvider);
     return LexiconScaffold(
-      title: 'Dictionary',
+      title: 'Lugat',
+      fallbackRoute: '/home',
       child: AsyncValueView(
         value: blocks,
         data: (items) => GridView.builder(
@@ -29,7 +30,7 @@ class DictionaryScreen extends ConsumerWidget {
             return Card(
               child: InkWell(
                 borderRadius: BorderRadius.circular(24),
-                onTap: () => context.go('/dictionary/block/${block.id}'),
+                onTap: () => context.push('/dictionary/block/${block.id}'),
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(
@@ -39,7 +40,7 @@ class DictionaryScreen extends ConsumerWidget {
                       const Spacer(),
                       Text(block.displayTitle, style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 8),
-                      Text('${block.learnedWords}/${block.totalWords} words learned'),
+                      Text('${block.learnedWords}/${block.totalWords} soz oyrenilib'),
                     ],
                   ),
                 ),
@@ -51,3 +52,4 @@ class DictionaryScreen extends ConsumerWidget {
     );
   }
 }
+

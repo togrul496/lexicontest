@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/routing/app_routes.dart';
@@ -17,7 +17,8 @@ class TestsHubScreen extends StatelessWidget {
       ('Quiz Sessions', AppRoutes.quizSessions.path),
     ];
     return LexiconScaffold(
-      title: 'Tests & Results',
+      title: 'Testler ve neticeler',
+      fallbackRoute: '/home',
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 320,
@@ -31,8 +32,8 @@ class TestsHubScreen extends StatelessWidget {
           return Card(
             child: InkWell(
               borderRadius: BorderRadius.circular(24),
-              onTap: () => context.go(card.$2),
-              child: Center(child: Text(card.$1, style: Theme.of(context).textTheme.titleLarge)),
+              onTap: () => context.push(card.$2),
+              child: Center(child: Text(card.$1, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center)),
             ),
           );
         },
@@ -40,3 +41,4 @@ class TestsHubScreen extends StatelessWidget {
     );
   }
 }
+

@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 import 'package:lexicon_flutter/core/models/app_models.dart';
 import 'package:lexicon_flutter/core/routing/app_routes.dart';
 
@@ -74,3 +74,4 @@ void main() {
     expect(redirectForSession(session, AppRoutes.adminRoot.path), AppRoutes.home.path);
   });
 }
+

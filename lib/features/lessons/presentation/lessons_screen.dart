@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,7 +13,8 @@ class LessonsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final lessons = ref.watch(lessonsProvider);
     return LexiconScaffold(
-      title: 'Lessons',
+      title: 'Dersler',
+      fallbackRoute: '/home',
       child: AsyncValueView(
         value: lessons,
         data: (items) => ListView.separated(
@@ -25,10 +26,8 @@ class LessonsScreen extends ConsumerWidget {
               child: ListTile(
                 title: Text(lesson.title),
                 subtitle: Text(lesson.description ?? 'Structured lesson content'),
-                trailing: Icon(
-                  lesson.isCompleted ? Icons.check_circle_rounded : Icons.chevron_right_rounded,
-                ),
-                onTap: () => context.go('/lessons/${lesson.id}'),
+                trailing: Icon(lesson.isCompleted ? Icons.check_circle_rounded : Icons.chevron_right_rounded),
+                onTap: () => context.push('/lessons/${lesson.id}'),
               ),
             );
           },
@@ -37,3 +36,4 @@ class LessonsScreen extends ConsumerWidget {
     );
   }
 }
+

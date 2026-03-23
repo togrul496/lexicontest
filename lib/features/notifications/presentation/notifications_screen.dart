@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -14,7 +14,8 @@ class NotificationsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifications = ref.watch(notificationsProvider);
     return LexiconScaffold(
-      title: 'Notifications',
+      title: 'Bildirisler',
+      fallbackRoute: '/home',
       actions: [
         IconButton(
           onPressed: () async {
@@ -33,7 +34,7 @@ class NotificationsScreen extends ConsumerWidget {
             final item = items[index];
             return Card(
               child: ListTile(
-                onTap: () => context.go('/notifications/${item.notificationId}'),
+                onTap: () => context.push('/notifications/${item.notificationId}'),
                 leading: CircleAvatar(
                   child: Icon(item.isRead ? Icons.mark_email_read_rounded : Icons.mark_email_unread_rounded),
                 ),
@@ -51,3 +52,4 @@ class NotificationsScreen extends ConsumerWidget {
     );
   }
 }
+

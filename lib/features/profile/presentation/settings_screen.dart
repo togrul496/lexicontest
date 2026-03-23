@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/lexicon_scaffold.dart';
@@ -11,62 +11,71 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionControllerProvider);
+
+    Future<void> saveSettings({required String language, required String theme}) async {
+      await ref.read(profileRepositoryProvider).updateSettings(language: language, theme: theme);
+      await ref.read(sessionControllerProvider.notifier).updatePreferences(theme: theme, language: language);
+    }
+
     return LexiconScaffold(
-      title: 'Settings',
+      title: 'Tenzimlemeler',
+      fallbackRoute: '/home',
       child: ListView(
         children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Appearance & language', style: Theme.of(context).textTheme.headlineMedium),
-                  const SizedBox(height: 20),
-                  DropdownButtonFormField<String>(
-                    value: session.theme,
-                    decoration: const InputDecoration(labelText: 'Theme'),
-                    items: const [
-                      DropdownMenuItem(value: 'system', child: Text('System')),
-                      DropdownMenuItem(value: 'light', child: Text('Light')),
-                      DropdownMenuItem(value: 'dark', child: Text('Dark')),
-                    ],
-                    onChanged: (value) async {
-                      if (value == null) return;
-                      await ref.read(profileRepositoryProvider).updateSettings(
-                            language: session.language,
-                            theme: value,
-                          );
-                      await ref.read(sessionControllerProvider.notifier).updatePreferences(
-                            theme: value,
-                            language: session.language,
-                          );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: session.language,
-                    decoration: const InputDecoration(labelText: 'Language'),
-                    items: const [
-                      DropdownMenuItem(value: 'az', child: Text('Azerbaijani')),
-                      DropdownMenuItem(value: 'ru', child: Text('Russian')),
-                      DropdownMenuItem(value: 'en', child: Text('English')),
-                    ],
-                    onChanged: (value) async {
-                      if (value == null) return;
-                      await ref.read(profileRepositoryProvider).updateSettings(
-                            language: value,
-                            theme: session.theme,
-                          );
-                      await ref.read(sessionControllerProvider.notifier).updatePreferences(
-                            theme: session.theme,
-                            language: value,
-                          );
-                    },
-                  ),
-                ],
+          const _SectionLabel('DIL'),
+          const SizedBox(height: 10),
+          _SettingsCard(
+            children: [
+              _OptionTile(
+                title: 'Azerbaycan dili',
+                selected: session.language == 'az',
+                onTap: () => saveSettings(language: 'az', theme: session.theme),
               ),
-            ),
+              _OptionTile(
+                title: 'Russian',
+                selected: session.language == 'ru',
+                onTap: () => saveSettings(language: 'ru', theme: session.theme),
+              ),
+              _OptionTile(
+                title: 'English',
+                selected: session.language == 'en',
+                onTap: () => saveSettings(language: 'en', theme: session.theme),
+                isLast: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const _SectionLabel('TEMA'),
+          const SizedBox(height: 10),
+          _SettingsCard(
+            children: [
+              _OptionTile(
+                title: 'Light',
+                selected: session.theme == 'light',
+                icon: Icons.light_mode_rounded,
+                onTap: () => saveSettings(language: session.language, theme: 'light'),
+              ),
+              _OptionTile(
+                title: 'Dark',
+                selected: session.theme == 'dark',
+                icon: Icons.dark_mode_rounded,
+                onTap: () => saveSettings(language: session.language, theme: 'dark'),
+              ),
+              _OptionTile(
+                title: 'System',
+                selected: session.theme == 'system',
+                icon: Icons.settings_suggest_rounded,
+                onTap: () => saveSettings(language: session.language, theme: 'system'),
+                isLast: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
+          FilledButton.icon(
+            onPressed: () => ref.read(sessionControllerProvider.notifier).signOut(),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red.withValues(alpha: 0.18), foregroundColor: Colors.redAccent),
+            icon: const Icon(Icons.logout_rounded),
+            label: const Text('Cixis et'),
           ),
         ],
       ),
@@ -74,5 +83,68 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
 
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.1),
+    );
+  }
+}
+
+class _SettingsCard extends StatelessWidget {
+  const _SettingsCard({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(children: children),
+    );
+  }
+}
+
+class _OptionTile extends StatelessWidget {
+  const _OptionTile({
+    required this.title,
+    required this.selected,
+    required this.onTap,
+    this.icon,
+    this.isLast = false,
+  });
+
+  final String title;
+  final bool selected;
+  final VoidCallback onTap;
+  final IconData? icon;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    const primary = Color(0xFF2563EB);
+    const textPrimary = Color(0xFFF1F5F9);
+    const textSecondary = Color(0xFF94A3B8);
+
+    return Column(
+      children: [
+        ListTile(
+          onTap: onTap,
+          leading: icon == null ? null : Icon(icon, color: selected ? primary : textSecondary),
+          title: Text(
+            title,
+            style: TextStyle(color: selected ? textPrimary : textSecondary, fontWeight: selected ? FontWeight.w700 : FontWeight.w500),
+          ),
+          trailing: Radio<bool>(value: true, groupValue: selected, onChanged: (_) => onTap(), activeColor: primary),
+        ),
+        if (!isLast) const Divider(height: 1, color: Color(0xFF334155)),
+      ],
+    );
+  }
+}
 

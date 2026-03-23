@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/routing/app_routes.dart';
-import '../../../core/widgets/lexicon_scaffold.dart';
 import '../data/auth_repository.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -20,6 +19,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _submitting = false;
+  bool _obscurePassword = true;
   String? _error;
 
   @override
@@ -56,60 +56,105 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return LexiconScaffold(
-      title: 'Create account',
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    Text('Start from a cleaner, faster mobile foundation', style: theme.textTheme.headlineMedium),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: _fullNameController,
-                      decoration: const InputDecoration(labelText: 'Full name'),
-                      validator: (value) => value == null || value.trim().isEmpty ? 'Enter full name' : null,
+    const bgDark = Color(0xFF0F172A);
+    const bgCard = Color(0xFF1E293B);
+    const textPrimary = Color(0xFFF1F5F9);
+    const textSecondary = Color(0xFF94A3B8);
+    const fieldBg = Color(0xFF0B1220);
+
+    return Scaffold(
+      backgroundColor: bgDark,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: textPrimary,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => context.pop(),
+          icon: const Icon(Icons.arrow_back_rounded),
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Card(
+                color: bgCard,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Hesab yarat',
+                          style: TextStyle(color: textPrimary, fontSize: 28, fontWeight: FontWeight.w800),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Qeydiyyatdan kecin, hesab admin tesdiqinden sonra aktiv olacaq.',
+                          style: TextStyle(color: textSecondary, fontSize: 14),
+                        ),
+                        const SizedBox(height: 24),
+                        TextFormField(
+                          controller: _fullNameController,
+                          style: const TextStyle(color: textPrimary),
+                          decoration: const InputDecoration(labelText: 'Ad soyad', prefixIcon: Icon(Icons.badge_rounded), fillColor: fieldBg),
+                          validator: (value) => value == null || value.trim().isEmpty ? 'Ad soyadi daxil edin' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _emailController,
+                          style: const TextStyle(color: textPrimary),
+                          decoration: const InputDecoration(labelText: 'E-poct', prefixIcon: Icon(Icons.email_rounded), fillColor: fieldBg),
+                          validator: (value) => value == null || !value.contains('@') ? 'Dogru e-poct daxil edin' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _usernameController,
+                          style: const TextStyle(color: textPrimary),
+                          decoration: const InputDecoration(labelText: 'Istifadeci adi', prefixIcon: Icon(Icons.person_rounded), fillColor: fieldBg),
+                          validator: (value) => value == null || value.trim().isEmpty ? 'Istifadeci adini daxil edin' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          style: const TextStyle(color: textPrimary),
+                          decoration: InputDecoration(
+                            labelText: 'Sifre',
+                            prefixIcon: const Icon(Icons.lock_rounded),
+                            fillColor: fieldBg,
+                            suffixIcon: IconButton(
+                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              icon: Icon(_obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded),
+                            ),
+                          ),
+                          validator: (value) => value == null || value.length < 6 ? 'Minimum 6 simvol olmalidir' : null,
+                        ),
+                        if (_error != null) ...[
+                          const SizedBox(height: 14),
+                          Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                        ],
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: _submitting ? null : _submit,
+                            child: Text(_submitting ? 'Qeydiyyat gedir...' : 'Qeydiyyatdan kec'),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton(
+                          onPressed: () => context.pop(),
+                          child: const Text('Giris ekranina qayit'),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (value) => value == null || !value.contains('@') ? 'Enter valid email' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _usernameController,
-                      decoration: const InputDecoration(labelText: 'Username'),
-                      validator: (value) => value == null || value.trim().isEmpty ? 'Enter username' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(labelText: 'Password'),
-                      validator: (value) => value == null || value.length < 6 ? 'Minimum 6 characters' : null,
-                    ),
-                    if (_error != null) ...[
-                      const SizedBox(height: 12),
-                      Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
-                    ],
-                    const SizedBox(height: 20),
-                    FilledButton(
-                      onPressed: _submitting ? null : _submit,
-                      child: Text(_submitting ? 'Creating account...' : 'Register'),
-                    ),
-                    TextButton(
-                      onPressed: () => context.go(AppRoutes.login.path),
-                      child: const Text('Back to sign in'),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -119,3 +164,5 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 }
+
+

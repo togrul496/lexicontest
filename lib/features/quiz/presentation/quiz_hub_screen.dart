@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/routing/app_routes.dart';
@@ -18,6 +18,7 @@ class QuizHubScreen extends StatelessWidget {
     ];
     return LexiconScaffold(
       title: title,
+      fallbackRoute: '/home',
       child: ListView.separated(
         itemCount: actions.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -27,7 +28,7 @@ class QuizHubScreen extends StatelessWidget {
             child: ListTile(
               title: Text(action.$1),
               trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () => context.go(action.$2),
+              onTap: () => context.push(action.$2),
             ),
           );
         },
@@ -35,3 +36,4 @@ class QuizHubScreen extends StatelessWidget {
     );
   }
 }
+

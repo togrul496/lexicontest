@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -43,10 +43,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const textPrimary = Color(0xFFF1F5F9);
+    const textSecondary = Color(0xFF94A3B8);
+    const primary = Color(0xFF2563EB);
+    const amber = Color(0xFFF59E0B);
+    const red = Color(0xFFEF4444);
+
     final profile = ref.watch(profileProvider);
     _seedControllers(profile);
+
     return LexiconScaffold(
-      title: 'Profile',
+      title: 'Profilim',
+      fallbackRoute: '/home',
+      actions: [
+        IconButton(
+          onPressed: () => ref.read(sessionControllerProvider.notifier).signOut(),
+          icon: const Icon(Icons.logout_rounded),
+        ),
+      ],
       child: AsyncValueView(
         value: profile,
         data: (user) => ListView(
@@ -55,65 +69,81 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    CircleAvatar(
+                      radius: 48,
+                      backgroundImage: user.profileImage != null ? NetworkImage(user.profileImage!) : null,
+                      child: user.profileImage == null
+                          ? Text(user.displayName.characters.first.toUpperCase(), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800))
+                          : null,
+                    ),
+                    const SizedBox(height: 14),
+                    Text(user.displayName, style: const TextStyle(color: textPrimary, fontSize: 22, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 4),
+                    Text('@${user.username}', style: const TextStyle(color: textSecondary)),
+                    const SizedBox(height: 14),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
                       children: [
-                        CircleAvatar(
-                          radius: 38,
-                          backgroundImage: user.profileImage != null ? NetworkImage(user.profileImage!) : null,
-                          child: user.profileImage == null ? Text(user.displayName.characters.first.toUpperCase()) : null,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(user.displayName, style: Theme.of(context).textTheme.headlineMedium),
-                              Text('${user.role} • ${user.status}'),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () async {
-                            final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-                            if (picked == null) return;
-                            await ref.read(profileRepositoryProvider).uploadAvatar(picked);
-                            ref.invalidate(profileProvider);
-                          },
-                          icon: const Icon(Icons.photo_camera_back_rounded),
-                        ),
+                        _InfoChip(label: user.role, color: primary),
+                        _InfoChip(label: user.status, color: amber),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Name')),
-                    const SizedBox(height: 16),
-                    TextField(controller: _surnameController, decoration: const InputDecoration(labelText: 'Surname')),
-                    const SizedBox(height: 16),
-                    TextField(controller: _usernameController, decoration: const InputDecoration(labelText: 'Username')),
-                    const SizedBox(height: 16),
-                    TextField(controller: _emailController, decoration: const InputDecoration(labelText: 'Email')),
-                    const SizedBox(height: 20),
-                    FilledButton(
+                    const SizedBox(height: 18),
+                    OutlinedButton.icon(
                       onPressed: () async {
-                        final updated = await ref.read(profileRepositoryProvider).updateProfile(
-                              name: _nameController.text.trim(),
-                              surname: _surnameController.text.trim(),
-                              username: _usernameController.text.trim(),
-                              email: _emailController.text.trim(),
-                            );
-                        await ref.read(sessionControllerProvider.notifier).updateUser(updated);
+                        final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+                        if (picked == null) return;
+                        await ref.read(profileRepositoryProvider).uploadAvatar(picked);
                         ref.invalidate(profileProvider);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Profile updated')),
-                          );
-                        }
                       },
-                      child: const Text('Save profile'),
+                      icon: const Icon(Icons.photo_camera_back_rounded),
+                      label: const Text('Sekli deyis'),
                     ),
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const _SectionTitle('MELUMATLAR'),
+            const SizedBox(height: 12),
+            TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Ad')),
+            const SizedBox(height: 12),
+            TextField(controller: _surnameController, decoration: const InputDecoration(labelText: 'Soyad')),
+            const SizedBox(height: 12),
+            TextField(controller: _usernameController, decoration: const InputDecoration(labelText: 'Istifadeci adi')),
+            const SizedBox(height: 12),
+            TextField(controller: _emailController, decoration: const InputDecoration(labelText: 'E-poct')),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () async {
+                final updated = await ref.read(profileRepositoryProvider).updateProfile(
+                      name: _nameController.text.trim(),
+                      surname: _surnameController.text.trim(),
+                      username: _usernameController.text.trim(),
+                      email: _emailController.text.trim(),
+                    );
+                await ref.read(sessionControllerProvider.notifier).updateUser(updated);
+                ref.invalidate(profileProvider);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil yenilendi')));
+                }
+              },
+              icon: const Icon(Icons.save_rounded),
+              label: const Text('Melumatlari yadda saxla'),
+            ),
+            const SizedBox(height: 24),
+            const _SectionTitle('HESAB'),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => ref.read(sessionControllerProvider.notifier).signOut(),
+              icon: const Icon(Icons.logout_rounded, color: red),
+              label: const Text('Cixis et', style: TextStyle(color: red)),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: red.withValues(alpha: 0.5)),
+                minimumSize: const Size.fromHeight(52),
               ),
             ),
           ],
@@ -122,3 +152,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 }
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Expanded(child: Divider(color: Color(0xFF334155))),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(text, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.1)),
+        ),
+        const Expanded(child: Divider(color: Color(0xFF334155))),
+      ],
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+    );
+  }
+}
+

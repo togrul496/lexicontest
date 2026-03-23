@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,9 +9,7 @@ import '../../../core/services/session_storage.dart';
 
 final sessionStorageProvider = Provider<SessionStorage>((ref) => SessionStorage());
 
-final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => AuthRepository(ref.watch(publicDioProvider)),
-);
+final authRepositoryProvider = Provider<AuthRepository>((ref) => AuthRepository());
 
 final sessionControllerProvider = StateNotifierProvider<SessionController, AppSession>(
   (ref) => SessionController(
@@ -21,12 +19,12 @@ final sessionControllerProvider = StateNotifierProvider<SessionController, AppSe
 );
 
 class AuthRepository {
-  AuthRepository(this._dio);
+  Dio get _publicDio => buildDio();
 
-  final Dio _dio;
+  Dio _authenticatedDio(String token) => buildDio(token: token);
 
   Future<LoginResult> login({required String username, required String password}) async {
-    final response = await _dio.post<dynamic>(
+    final response = await _publicDio.post<dynamic>(
       'api/auth/login',
       data: {
         'username': username,
@@ -46,7 +44,7 @@ class AuthRepository {
     required String password,
     required String fullName,
   }) async {
-    final response = await _dio.post<dynamic>(
+    final response = await _publicDio.post<dynamic>(
       'api/auth/register',
       data: {
         'username': username,
@@ -61,17 +59,18 @@ class AuthRepository {
     );
   }
 
-  Future<UserProfile> getMe() async {
-    final response = await _dio.get<dynamic>('api/auth/me');
+  Future<UserProfile> getMe(String token) async {
+    final response = await _authenticatedDio(token).get<dynamic>('api/auth/me');
     return unwrapEnvelope(
       response,
       (json) => UserProfile.fromJson(json as Map<String, dynamic>),
     );
   }
 
-  Future<void> logout() async {
+  Future<void> logout(String? token) async {
+    if (token == null || token.isEmpty) return;
     try {
-      await _dio.post<dynamic>('api/auth/logout');
+      await _authenticatedDio(token).post<dynamic>('api/auth/logout');
     } catch (_) {}
   }
 }
@@ -96,7 +95,7 @@ class SessionController extends StateNotifier<AppSession> {
       }
 
       state = stored;
-      final user = await _authRepository.getMe().timeout(const Duration(seconds: 15));
+      final user = await _authRepository.getMe(stored.token!).timeout(const Duration(seconds: 15));
       final next = stored.copyWith(
         isReady: true,
         isAuthenticated: true,
@@ -136,7 +135,7 @@ class SessionController extends StateNotifier<AppSession> {
   }
 
   Future<void> signOut() async {
-    await _authRepository.logout();
+    await _authRepository.logout(state.token);
     await _storage.clear();
     state = state.copyWith(
       isReady: true,
@@ -164,3 +163,4 @@ class SessionController extends StateNotifier<AppSession> {
     await _storage.savePreferences(theme: theme, language: language);
   }
 }
+

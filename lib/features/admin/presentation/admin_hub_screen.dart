@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/routing/app_routes.dart';
@@ -22,6 +22,7 @@ class AdminHubScreen extends StatelessWidget {
     ];
     return LexiconScaffold(
       title: 'Admin Panel',
+      fallbackRoute: '/home',
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 260,
@@ -35,7 +36,7 @@ class AdminHubScreen extends StatelessWidget {
           return Card(
             child: InkWell(
               borderRadius: BorderRadius.circular(24),
-              onTap: () => context.go(item.$2),
+              onTap: () => context.push(item.$2),
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -49,3 +50,4 @@ class AdminHubScreen extends StatelessWidget {
     );
   }
 }
+
