@@ -79,21 +79,22 @@ abstract final class AppRoutes {
 }
 
 String? redirectForSession(AppSession session, String location) {
-  const authPaths = {'/', '/login', '/register'};
+  const publicAuthPaths = {'/login', '/register'};
+  final isSplash = location == AppRoutes.splash.path;
 
   if (!session.isReady) {
-    return location == AppRoutes.splash.path ? null : AppRoutes.splash.path;
+    return isSplash ? null : AppRoutes.splash.path;
   }
 
   if (!session.isAuthenticated) {
-    return authPaths.contains(location) ? null : AppRoutes.login.path;
+    return publicAuthPaths.contains(location) ? null : AppRoutes.login.path;
   }
 
   if (session.isPending) {
     return location == AppRoutes.pending.path ? null : AppRoutes.pending.path;
   }
 
-  if (authPaths.contains(location) || location == AppRoutes.pending.path) {
+  if (isSplash || publicAuthPaths.contains(location) || location == AppRoutes.pending.path) {
     return session.isAdmin ? AppRoutes.adminRoot.path : AppRoutes.home.path;
   }
 
@@ -178,5 +179,3 @@ List<RouteBase> _adminPlaceholderRoutes() {
     simple(AppRoutes.adminQuizSessionResults, 'Quiz Session Results', 'Admin result analytics route is scaffolded.'),
   ];
 }
-
-

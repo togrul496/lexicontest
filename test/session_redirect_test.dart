@@ -10,6 +10,31 @@ void main() {
     expect(redirectForSession(session, AppRoutes.login.path), isNull);
   });
 
+  test('anonymous users leave splash for login once startup is ready', () {
+    const session = AppSession(isReady: true, isAuthenticated: false);
+
+    expect(redirectForSession(session, AppRoutes.splash.path), AppRoutes.login.path);
+  });
+
+  test('authenticated users leave splash for home', () {
+    const session = AppSession(
+      isReady: true,
+      isAuthenticated: true,
+      token: 'token',
+      user: UserProfile(
+        id: 1,
+        username: 'demo',
+        email: 'demo@example.com',
+        role: 'student',
+        status: 'active',
+        language: 'az',
+        theme: 'system',
+      ),
+    );
+
+    expect(redirectForSession(session, AppRoutes.splash.path), AppRoutes.home.path);
+  });
+
   test('pending users stay on pending screen', () {
     const session = AppSession(
       isReady: true,
@@ -49,4 +74,3 @@ void main() {
     expect(redirectForSession(session, AppRoutes.adminRoot.path), AppRoutes.home.path);
   });
 }
-
